@@ -2,6 +2,7 @@ from django import template
 from django.db import models
 from django.db.models import Count
 from django.core.exceptions import FieldError
+from django.contrib.contenttypes.models import ContentType
 
 from templatetag_sugar.register import tag
 from templatetag_sugar.parser import Name, Variable, Constant, Optional, Model
@@ -20,7 +21,7 @@ def get_queryset(forvar=None):
     if None == forvar:
         # get all tags
         queryset = Tag.objects.all()
-    else:
+    elif isinstance(forvar, str):
         # extract app label and model name
         beginning, applabel, model = None, None, None
         try:
@@ -37,6 +38,17 @@ def get_queryset(forvar=None):
         if model:
             queryset = queryset.filter(content_type__model=model.lower())
             
+        # get tags
+        tag_ids = queryset.values_list('tag_id', flat=True)
+        queryset = Tag.objects.filter(id__in=tag_ids)
+    else:
+        if len(forvar) == 0:
+            queryset = TaggedItem.objects.none()
+        else:
+            ctype = ContentType.objects.get_for_model(forvar[0])
+            queryset = TaggedItem.objects.filter(content_type=ctype)\
+                        .filter(object_id__in=[x.pk for x in forvar])
+
         # get tags
         tag_ids = queryset.values_list('tag_id', flat=True)
         queryset = Tag.objects.filter(id__in=tag_ids)
