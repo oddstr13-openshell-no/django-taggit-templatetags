@@ -97,15 +97,15 @@ def get_taglist(context, asvar, forvar=None):
 def get_tagcloud(context, asvar, forvar=None):
     queryset, occurrences = get_queryset(forvar)
 
-    annot_num_times = queryset.values_list('num_times', flat=True)
-    num_times = [occurrences.get(tag.pk, annot_num_times[i]) for i, tag in enumerate(queryset)]
+    num_times = occurrences.values() if len(occurrences) \
+        else queryset.values_list('num_times', flat=True)
     if(len(num_times) == 0):
         context[asvar] = queryset
         return ''
     weight_fun = get_weight_fun(T_MIN, T_MAX, min(num_times), max(num_times))
     queryset = queryset.order_by('name')
     for i, tag in enumerate(queryset):
-        tag.weight = weight_fun(num_times[i])
+        tag.weight = weight_fun(occurrences.get(tag.pk, tag.num_times))
     context[asvar] = queryset
     return ''
     
