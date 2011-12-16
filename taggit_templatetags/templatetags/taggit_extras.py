@@ -50,7 +50,9 @@ def get_queryset(forvar=None):
             queryset = queryset.filter(content_type__model=model.lower())
             
         # get tags
-        tag_ids = queryset.values_list('tag_id', flat=True)
+        # this is interesting: if we don't make tag_ids as a list, even if
+        # empty it will get all the tags from Tag.objects.filter(id__in=tag_ids)
+        tag_ids = list(queryset.values_list('tag_id', flat=True))
         queryset = Tag.objects.filter(id__in=tag_ids)
         occurrences = _count(tag_ids)
     else:
@@ -62,7 +64,7 @@ def get_queryset(forvar=None):
                         .filter(object_id__in=[x.pk for x in forvar])
 
         # get tags
-        tag_ids = queryset.values_list('tag_id', flat=True)
+        tag_ids = list(queryset.values_list('tag_id', flat=True))
         queryset = Tag.objects.filter(id__in=tag_ids)
         occurrences = _count(tag_ids)
 
