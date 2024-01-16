@@ -32,7 +32,7 @@ def get_queryset(forvar=None):
         # get all tags
         queryset = Tag.objects.all()
         occurrences = {}
-    elif isinstance(forvar, basestring):
+    elif isinstance(forvar, str):
         # extract app label and model name
         beginning, applabel, model = None, None, None
         try:
